@@ -46,7 +46,7 @@ fn main() -> io::Result<()> {
     let mut content = String::new();
     file.read_to_string(&mut content)?;
 
-    let scanner = crate::scanner::Scanner::new(content);
+    let mut scanner = crate::scanner::Scanner::new(content);
     scanner.scan_tokens();
 
     Ok(())
