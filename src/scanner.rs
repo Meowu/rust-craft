@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use crate::error_format::format_error;
 
-#[derive(Clone, Copy)]
-enum TokenType {
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum TokenType {
     // Single-character tokens.
     LeftParen,
     RightParen,
@@ -59,11 +59,11 @@ enum Literal {
     String(String),
 }
 
-struct Token {
-    t_type: TokenType,
-    lexeme: Vec<u8>,
-    line: usize,
-    literal: Option<Literal>,
+pub struct Token {
+    pub t_type: TokenType,
+    pub lexeme: Vec<u8>,
+    pub line: usize,
+    pub literal: Option<Literal>,
 }
 
 pub struct Scanner {

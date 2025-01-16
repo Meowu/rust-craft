@@ -4,6 +4,7 @@ use std::{env, process};
 
 mod error_format;
 mod expr;
+mod parser;
 mod scanner;
 
 const AUTHORS: &str = env!("CARGO_PKG_AUTHORS");

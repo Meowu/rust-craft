@@ -48,4 +48,13 @@ pub struct UnaryOp {
     col: i64,
 }
 
-pub struct BinaryOp;
+pub enum BinaryOpType {
+    Equal,
+    EqualEqual,
+}
+
+pub struct BinaryOp {
+    pub op_type: BinaryOpType,
+    pub line: usize,
+    pub col: i64,
+}
