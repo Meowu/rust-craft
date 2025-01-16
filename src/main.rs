@@ -3,6 +3,7 @@ use std::io::{self, stdin, stdout, BufRead, BufReader, Read, Write};
 use std::{env, process};
 
 mod error_format;
+mod expr;
 mod scanner;
 
 const AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
