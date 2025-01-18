@@ -53,16 +53,19 @@ pub enum TokenType {
     Eof,
 }
 
-enum Literal {
+#[derive(Clone)]
+pub enum Literal {
     Indentifier(String),
     Number(f64),
     String(String),
 }
 
+#[derive(Clone)]
 pub struct Token {
     pub t_type: TokenType,
     pub lexeme: Vec<u8>,
     pub line: usize,
+    // pub col: f64,
     pub literal: Option<Literal>,
 }
 

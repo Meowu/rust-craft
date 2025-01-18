@@ -4,7 +4,7 @@ pub enum Expr {
     Binary(Box<Expr>, BinaryOp, Box<Expr>),
     Call(Box<Expr>, SourceLocation, Vec<Expr>),
     Get(Box<Expr>, Symbol),
-    Group(Box<Expr>),
+    Grouping(Box<Expr>),
     Literal(Literal),
     Logical(Box<Expr>, LogicalOp, Box<Expr>),
     Set(Box<Expr>, Symbol, Box<Expr>),
@@ -43,14 +43,22 @@ pub enum UnaryOpType {
 }
 
 pub struct UnaryOp {
-    op_type: UnaryOpType,
-    line: usize,
-    col: i64,
+    pub op_type: UnaryOpType,
+    pub line: usize,
+    pub col: i64,
 }
 
 pub enum BinaryOpType {
     Equal,
     EqualEqual,
+    Greater,
+    GreaterEqual,
+    Less,
+    LessEqual,
+    Minus,
+    Plus,
+    Slash,
+    Star,
 }
 
 pub struct BinaryOp {
