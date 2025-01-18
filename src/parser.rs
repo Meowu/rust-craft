@@ -8,12 +8,25 @@ pub struct Parser {
 }
 
 pub enum Error {
-    UnexpectedToken(TokenType),
+    UnexpectedToken(Token),
+    TokenMissmatch {
+        expected: TokenType,
+        found: Token,
+        message: Option<String>,
+    },
+    ExpectedExpression {
+        token_type: TokenType,
+        line: usize,
+        col: i64,
+    },
 }
 
 impl Parser {
-    pub fn parse(&mut self, tokens: Vec<Token>) {
+    pub fn parse(&mut self, tokens: Vec<Token>) -> Result<(), Error> {
         self.tokens = tokens;
+        let expr = self.expression()?;
+
+        Ok(())
     }
 
     fn expression(&mut self) -> Result<Expr, Error> {
@@ -85,11 +98,16 @@ impl Parser {
 
         if self.match_one(TokenType::LeftParen) {
             let expr = self.expression()?;
-            // self.comseume(TokenType::RightParen, "Expect ')' after expression");
+            self.consume(TokenType::RightParen, "Expect ')' after expression")?;
             return Ok(Expr::Grouping(Box::new(expr)));
         }
 
-        Err(Error::UnexpectedToken(self.peek().t_type))
+        let current = self.peek();
+        Err(Error::ExpectedExpression {
+            token_type: current.t_type,
+            line: current.line,
+            col: -1,
+        })
     }
 
     fn term(&mut self) -> Result<Expr, Error> {
@@ -207,12 +225,41 @@ impl Parser {
         false
     }
 
+    fn synchronize(&mut self) {
+        self.advance();
+        while !self.is_at_end() {
+            if self.previous().t_type == TokenType::Semicolon {
+                return;
+            }
+            match self.peek().t_type {
+                TokenType::If
+                | TokenType::Var
+                | TokenType::For
+                | TokenType::Fun
+                | TokenType::While => return,
+                _ => {}
+            }
+        }
+        self.advance();
+    }
+
     fn check(&self, token_type: TokenType) -> bool {
         if self.is_at_end() {
             false
         } else {
             self.peek().t_type == token_type
         }
+    }
+
+    fn consume(&mut self, token_type: TokenType, message: &str) -> Result<Token, Error> {
+        if self.check(token_type) {
+            return Ok(self.advance().clone());
+        }
+        Err(Error::TokenMissmatch {
+            expected: token_type,
+            found: self.peek().clone(),
+            message: Some(message.to_string()),
+        })
     }
 
     fn advance(&mut self) -> &Token {
