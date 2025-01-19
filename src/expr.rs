@@ -1,3 +1,4 @@
+#[derive(Debug, Clone)]
 pub enum Expr {
     Assign(Symbol, Box<Expr>),
     Unary(UnaryOp, Box<Expr>),
@@ -13,6 +14,7 @@ pub enum Expr {
     Variable(Symbol),
 }
 
+#[derive(Debug, Clone)]
 pub enum Literal {
     String(String),
     Number(f64),
@@ -21,33 +23,39 @@ pub enum Literal {
     Nil,
 }
 
+#[derive(Debug, Clone)]
 pub struct SourceLocation {
     line: usize,
     col: i64,
 }
 
+#[derive(Debug, Clone)]
 pub struct Symbol {
     pub name: String,
     line: usize,
     col: i64,
 }
 
+#[derive(Debug, Clone)]
 pub enum LogicalOp {
     And,
     Or,
 }
 
+#[derive(Debug, Clone)]
 pub enum UnaryOpType {
     Minus,
     Bang,
 }
 
+#[derive(Debug, Clone)]
 pub struct UnaryOp {
     pub op_type: UnaryOpType,
     pub line: usize,
     pub col: i64,
 }
 
+#[derive(Debug, Clone)]
 pub enum BinaryOpType {
     Equal,
     EqualEqual,
@@ -61,6 +69,7 @@ pub enum BinaryOpType {
     Star,
 }
 
+#[derive(Debug, Clone)]
 pub struct BinaryOp {
     pub op_type: BinaryOpType,
     pub line: usize,

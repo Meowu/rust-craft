@@ -1,6 +1,8 @@
 use std::fs::File;
-use std::io::{self, stdin, stdout, BufRead, BufReader, Read, Write};
+use std::io::{self, stdin, stdout, BufRead, BufReader, Error, Read, Write};
 use std::{env, process};
+
+use parser::Parser;
 
 mod error_format;
 mod expr;
@@ -10,7 +12,7 @@ mod scanner;
 const AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-fn main() -> io::Result<()> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!(
         "===================================================\n\
         Welcome to lox {}!\n\
@@ -48,8 +50,15 @@ fn main() -> io::Result<()> {
     let mut content = String::new();
     file.read_to_string(&mut content)?;
 
-    let mut scanner = crate::scanner::Scanner::new(content);
-    scanner.scan_tokens();
+    let mut scanner = crate::scanner::Scanner::new(content.clone());
+    let tokens = scanner::scan_tokens(content).unwrap();
+    // println!("Tokens: {:?}", tokens);
+    let mut parser = Parser { tokens, current: 0 };
+    let expr = parser.parse().map_err(|e| {
+        // println!("Parsed Expr: {:#}", e);
+        "Parse error.".to_string()
+    })?;
+    println!("Parsed Expr: {:?}", expr);
 
     Ok(())
 }

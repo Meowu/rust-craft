@@ -1,8 +1,8 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, io::Error};
 
 use crate::error_format::format_error;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TokenType {
     // Single-character tokens.
     LeftParen,
@@ -53,14 +53,14 @@ pub enum TokenType {
     Eof,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Literal {
     Indentifier(String),
     Number(f64),
     String(String),
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Token {
     pub t_type: TokenType,
     pub lexeme: Vec<u8>,
@@ -112,11 +112,20 @@ impl Default for Scanner {
     }
 }
 
+pub fn scan_tokens(input: String) -> Result<Vec<Token>, Error> {
+    let mut scanner: Scanner = Default::default();
+
+    scanner.scan_tokens(input);
+
+    Ok(scanner.tokens)
+}
+
 impl Scanner {
     pub fn new(source: String) -> Self {
         Scanner::default()
     }
-    pub fn scan_tokens(&mut self) {
+    pub fn scan_tokens(&mut self, source: String) {
+        self.source = source.into_bytes();
         while !self.is_at_end() {
             self.start = self.current;
             self.scan_token();

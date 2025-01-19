@@ -2,11 +2,13 @@ use crate::expr::{self, BinaryOp, Literal, UnaryOp, UnaryOpType};
 use crate::expr::{BinaryOpType, Expr};
 use crate::scanner::{self, *};
 
+#[derive(Default)]
 pub struct Parser {
-    current: usize,
-    tokens: Vec<Token>,
+    pub current: usize,
+    pub tokens: Vec<Token>,
 }
 
+#[derive(Debug)]
 pub enum Error {
     UnexpectedToken(Token),
     TokenMissmatch {
@@ -22,11 +24,11 @@ pub enum Error {
 }
 
 impl Parser {
-    pub fn parse(&mut self, tokens: Vec<Token>) -> Result<(), Error> {
-        self.tokens = tokens;
+    pub fn parse(&mut self) -> Result<Expr, Error> {
+        // self.tokens = tokens;
         let expr = self.expression()?;
 
-        Ok(())
+        Ok(expr)
     }
 
     fn expression(&mut self) -> Result<Expr, Error> {
@@ -61,8 +63,18 @@ impl Parser {
         Ok(expr)
     }
 
+    fn term(&mut self) -> Result<Expr, Error> {
+        let mut expr = self.factor()?;
+        while self.matches(vec![TokenType::Plus, TokenType::Minus]) {
+            let operator = self.previous().clone();
+            let right = self.factor()?;
+            let binary_op = Self::token_to_binary_operator(&operator);
+            expr = Expr::Binary(Box::new(expr), binary_op, Box::new(right));
+        }
+        Ok(expr)
+    }
+
     fn factor(&mut self) -> Result<Expr, Error> {
-        // Expr::Literal(Literal::Number(52.0))
         let mut expr = self.unary()?;
         while self.matches(vec![TokenType::Slash, TokenType::Star]) {
             let operator = self.previous().clone();
@@ -71,6 +83,18 @@ impl Parser {
             expr = Expr::Binary(Box::new(expr), binary_op, Box::new(right))
         }
         Ok(expr)
+    }
+
+    fn unary(&mut self) -> Result<Expr, Error> {
+        if self.matches(vec![TokenType::Minus, TokenType::Bang]) {
+            let operator = self.previous().clone();
+            // one and only another unary.
+            let right = self.unary()?;
+            let unary_op = Self::token_to_unary_op(&operator);
+            return Ok(Expr::Unary(unary_op, Box::new(right)));
+        }
+
+        self.primary()
     }
 
     fn primary(&mut self) -> Result<Expr, Error> {
@@ -101,36 +125,12 @@ impl Parser {
             self.consume(TokenType::RightParen, "Expect ')' after expression")?;
             return Ok(Expr::Grouping(Box::new(expr)));
         }
-
         let current = self.peek();
         Err(Error::ExpectedExpression {
             token_type: current.t_type,
             line: current.line,
             col: -1,
         })
-    }
-
-    fn term(&mut self) -> Result<Expr, Error> {
-        let mut expr = self.factor()?;
-        while self.matches(vec![TokenType::Plus, TokenType::Minus]) {
-            let operator = self.previous().clone();
-            let right = self.factor()?;
-            let binary_op = Self::token_to_binary_operator(&operator);
-            expr = Expr::Binary(Box::new(expr), binary_op, Box::new(right));
-        }
-        Ok(expr)
-    }
-
-    fn unary(&mut self) -> Result<Expr, Error> {
-        if self.matches(vec![TokenType::Minus, TokenType::Bang]) {
-            let operator = self.previous().clone();
-            // one and only another unary.
-            let right = self.unary()?;
-            let unary_op = Self::token_to_unary_op(&operator);
-            return Ok(Expr::Unary(unary_op, Box::new(right)));
-        }
-
-        self.primary()
     }
 
     fn token_to_unary_op(token: &Token) -> UnaryOp {
@@ -182,6 +182,16 @@ impl Parser {
             },
             TokenType::Less => BinaryOp {
                 op_type: BinaryOpType::Less,
+                line,
+                col,
+            },
+            TokenType::Plus => BinaryOp {
+                op_type: BinaryOpType::Plus,
+                line,
+                col,
+            },
+            TokenType::Minus => BinaryOp {
+                op_type: BinaryOpType::Minus,
                 line,
                 col,
             },
