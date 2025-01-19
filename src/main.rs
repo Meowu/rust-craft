@@ -8,6 +8,7 @@ mod error_format;
 mod expr;
 mod parser;
 mod scanner;
+mod tree_interpreter;
 
 const AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
 const VERSION: &str = env!("CARGO_PKG_VERSION");

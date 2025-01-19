@@ -42,13 +42,13 @@ pub enum LogicalOp {
     Or,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum UnaryOpType {
     Minus,
     Bang,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct UnaryOp {
     pub op_type: UnaryOpType,
     pub line: usize,
