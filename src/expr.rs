@@ -57,7 +57,7 @@ pub struct UnaryOp {
 
 #[derive(Debug, Clone)]
 pub enum BinaryOpType {
-    Equal,
+    BangEqual,
     EqualEqual,
     Greater,
     GreaterEqual,

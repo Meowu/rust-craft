@@ -80,6 +80,9 @@ impl Interpreter {
             (_, expr::BinaryOpType::EqualEqual, _) => {
                 Ok(Value::Boolean(Self::equals(&left, &right)))
             }
+            (_, expr::BinaryOpType::BangEqual, _) => {
+                Ok(Value::Boolean(!Self::equals(&left, &right)))
+            }
             _ => Err("Invalid Operation".to_string()),
         }
     }
@@ -108,6 +111,7 @@ impl Interpreter {
                     (n1 - n2).abs() < f64::EPSILON
                 }
             }
+            // Nil != Nil
             (Value::Nil, Value::Nil) => true,
             _ => false,
         }
