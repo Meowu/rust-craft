@@ -1,8 +1,8 @@
 use core::f64;
-use std::f64::NAN;
 
 use crate::expr::{self, BinaryOp, Expr, Literal, UnaryOp, UnaryOpType};
 
+#[derive(Debug)]
 pub enum Value {
     Number(f64),
     String(String),
@@ -32,7 +32,12 @@ pub enum RuntimeError {}
 pub struct Interpreter {}
 
 impl Interpreter {
-    fn evaluate(&mut self, expr: &Expr) -> Result<Value, String> {
+    pub fn interpret(&mut self, expr: &Expr) -> Result<(), String> {
+        let val = self.evaluate(expr)?;
+        println!("Evaluate result: {:?}", val);
+        Ok(())
+    }
+    pub fn evaluate(&mut self, expr: &Expr) -> Result<Value, String> {
         match expr {
             Expr::Literal(literal) => Ok(self.visit_literal(literal)),
             Expr::Unary(op, e) => self.visit_unary(*op, e),
@@ -73,6 +78,7 @@ impl Interpreter {
     }
 
     fn visit_binary(&mut self, lhs: &Expr, op: BinaryOp, rhs: &Expr) -> Result<Value, String> {
+        // todo: We could have instead specified that the left operand is checked before even evaluating the right.
         let left = self.evaluate(lhs).unwrap();
         let right = self.evaluate(rhs).unwrap();
         match (&left, op.op_type, &right) {

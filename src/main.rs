@@ -59,7 +59,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // println!("Parsed Expr: {:#}", e);
         "Parse error.".to_string()
     })?;
-    println!("Parsed Expr: {:?}", expr);
+    println!("Parsed Expr: {:?}", &expr);
 
+    let mut interpreter = tree_interpreter::Interpreter {};
+    if let Err(e) = interpreter.interpret(&expr) {
+        eprintln!("Eval err: {}", e);
+    }
     Ok(())
 }
