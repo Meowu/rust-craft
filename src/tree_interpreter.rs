@@ -10,6 +10,25 @@ pub enum Value {
     Nil,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum LoxType {
+    Number,
+    String,
+    Boolean,
+    Nil,
+}
+
+pub fn instance_of(val: &Value) -> LoxType {
+    match val {
+        Value::Nil => LoxType::Nil,
+        Value::Number(_) => LoxType::Number,
+        Value::String(_) => LoxType::String,
+        Value::Boolean(_) => LoxType::Boolean,
+    }
+}
+
+pub enum RuntimeError {}
+
 pub struct Interpreter {}
 
 impl Interpreter {
@@ -38,7 +57,18 @@ impl Interpreter {
         match (op.op_type, &val) {
             (UnaryOpType::Minus, Value::Number(n)) => Ok(Value::Number(-n)),
             (UnaryOpType::Bang, Value::Number(_)) => Ok(Value::Boolean(!Self::is_truthy(&val))),
-            _ => Err("Invalid Unary".to_string()),
+            (_, Value::String(_)) => Err(format!(
+                "Invalid use of unary operator '{:?}' on a String type at line {}, column {}.",
+                op.op_type, op.line, op.col
+            )),
+            (_, Value::Boolean(_)) => Err(format!(
+                "Invalid use of unary operator '{:?}' on a Boolean type at line {}, column {}.",
+                op.op_type, op.line, op.col
+            )),
+            (_, Value::Nil) => Err(format!(
+                "Invalid use of unary operator {:?} on a Nil type at line {}, column {}.",
+                op.op_type, op.line, op.col
+            )),
         }
     }
 
@@ -83,7 +113,10 @@ impl Interpreter {
             (_, expr::BinaryOpType::BangEqual, _) => {
                 Ok(Value::Boolean(!Self::equals(&left, &right)))
             }
-            _ => Err("Invalid Operation".to_string()),
+            _ => Err(format!(
+                "Invalid operands for binary operator {:?} of types {:?} and {:?} at line {}, column {}.",
+                op.op_type, instance_of(&left), instance_of(&right),  op.line, op.col
+            )),
         }
     }
 

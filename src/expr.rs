@@ -55,7 +55,7 @@ pub struct UnaryOp {
     pub col: i64,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum BinaryOpType {
     BangEqual,
     EqualEqual,
@@ -69,7 +69,7 @@ pub enum BinaryOpType {
     Star,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct BinaryOp {
     pub op_type: BinaryOpType,
     pub line: usize,

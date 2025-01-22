@@ -160,8 +160,8 @@ impl Parser {
         let line = token.line;
         let col = -1;
         match token.t_type {
-            TokenType::Equal => BinaryOp {
-                op_type: BinaryOpType::Equal,
+            TokenType::BangEqual => BinaryOp {
+                op_type: BinaryOpType::BangEqual,
                 line,
                 col: -1,
             },
