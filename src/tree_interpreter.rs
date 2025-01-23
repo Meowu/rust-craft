@@ -28,6 +28,9 @@ pub fn instance_of(val: &Value) -> LoxType {
 }
 
 pub enum RuntimeError {}
+pub enum TypeError {}
+pub enum NameError {}
+pub enum ReferenceError {}
 
 pub struct Interpreter {}
 
@@ -107,7 +110,7 @@ impl Interpreter {
                 if *rn != 0.0 {
                     Ok(Value::Number(ln / rn))
                 } else {
-                    Err("Division by zero.".to_string())
+                    Err(format!("ZeroDivisionError: division by zero at line {}, column {}.", op.line, op.col))
                 }
             }
             (Value::String(ls), expr::BinaryOpType::Plus, Value::String(rs)) => {
@@ -132,11 +135,6 @@ impl Interpreter {
             Value::Boolean(b) => *b,
             _ => true,
         }
-        // if let Value::Boolean(_) = val {
-        //     true
-        // } else {
-        //     false
-        // }
     }
 
     fn equals(lhs: &Value, rhs: &Value) -> bool {
