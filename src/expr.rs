@@ -15,6 +15,12 @@ pub enum Expr {
 }
 
 #[derive(Debug, Clone)]
+pub enum Stmt {
+    Expr(Expr),
+    Print(Expr),
+}
+
+#[derive(Debug, Clone)]
 pub enum Literal {
     String(String),
     Number(f64),

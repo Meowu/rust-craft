@@ -55,14 +55,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let tokens = scanner::scan_tokens(content).unwrap();
     // println!("Tokens: {:?}", tokens);
     let mut parser = Parser { tokens, current: 0 };
-    let expr = parser.parse().map_err(|e| {
-        // println!("Parsed Expr: {:#}", e);
+    let program = parser.parse().map_err(|e| {
+        // println!("Parsed Expr: {:?}", e);
         "Parse error.".to_string()
     })?;
-    println!("Parsed Expr: {:?}", &expr);
+    // println!("Parsed Expr: {:?}", &program);
 
     let mut interpreter = tree_interpreter::Interpreter {};
-    if let Err(e) = interpreter.interpret(&expr) {
+    if let Err(e) = interpreter.interpret(&program) {
         eprintln!("Eval err: {}", e);
     }
     Ok(())

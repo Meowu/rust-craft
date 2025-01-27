@@ -1,6 +1,6 @@
 use core::f64;
 
-use crate::expr::{self, BinaryOp, Expr, Literal, UnaryOp, UnaryOpType};
+use crate::expr::{self, BinaryOp, Expr, Literal, Stmt, UnaryOp, UnaryOpType};
 
 #[derive(Debug)]
 pub enum Value {
@@ -35,20 +35,39 @@ pub enum ReferenceError {}
 pub struct Interpreter {}
 
 impl Interpreter {
-    pub fn interpret(&mut self, expr: &Expr) -> Result<(), String> {
-        let val = self.evaluate(expr)?;
-        println!("Evaluate result: {:?}", val);
+    pub fn interpret(&mut self, stmts: &[Stmt]) -> Result<(), String> {
+        for stmt in stmts {
+            self.evaluate(stmt)?;
+        }
         Ok(())
     }
-    pub fn evaluate(&mut self, expr: &Expr) -> Result<Value, String> {
+    pub fn evaluate(&mut self, stmt: &Stmt) -> Result<(), String> {
+        match stmt {
+            Stmt::Expr(expr) => match self.evaluate_expr(expr) {
+                Ok(_) => Ok(()),
+                Err(err) => Err(err),
+            },
+            Stmt::Print(e) => match self.evaluate_expr(e) {
+                Ok(val) => {
+                    println!("{}", self.format_val(&val));
+                    // todo: collect output.
+                    Ok(())
+                }
+                Err(err) => Err(err),
+            },
+        }
+    }
+
+    pub fn evaluate_expr(&mut self, expr: &Expr) -> Result<Value, String> {
         match expr {
             Expr::Literal(literal) => Ok(self.visit_literal(literal)),
             Expr::Unary(op, e) => self.visit_unary(*op, e),
             Expr::Binary(lhs, op, rhs) => self.visit_binary(lhs, op.clone(), rhs),
-            Expr::Grouping(e) => self.evaluate(e),
+            Expr::Grouping(e) => self.evaluate_expr(e),
             _ => Err("E".to_string()),
         }
     }
+
     fn visit_literal(&mut self, expr: &Literal) -> Value {
         match expr {
             Literal::String(s) => Value::String(s.clone()),
@@ -60,7 +79,7 @@ impl Interpreter {
     }
 
     fn visit_unary(&mut self, op: UnaryOp, expr: &Expr) -> Result<Value, String> {
-        let val = self.evaluate(expr)?;
+        let val = self.evaluate_expr(expr)?;
 
         match (op.op_type, &val) {
             (UnaryOpType::Minus, Value::Number(n)) => Ok(Value::Number(-n)),
@@ -82,8 +101,8 @@ impl Interpreter {
 
     fn visit_binary(&mut self, lhs: &Expr, op: BinaryOp, rhs: &Expr) -> Result<Value, String> {
         // todo: We could have instead specified that the left operand is checked before even evaluating the right.
-        let left = self.evaluate(lhs).unwrap();
-        let right = self.evaluate(rhs).unwrap();
+        let left = self.evaluate_expr(lhs).unwrap();
+        let right = self.evaluate_expr(rhs).unwrap();
         match (&left, op.op_type, &right) {
             (Value::Number(l), expr::BinaryOpType::Greater, Value::Number(r)) => {
                 Ok(Value::Boolean(l > r))
@@ -126,6 +145,15 @@ impl Interpreter {
                 "Invalid operands for binary operator {:?} of types {:?} and {:?} at line {}, column {}.",
                 op.op_type, instance_of(&left), instance_of(&right),  op.line, op.col
             )),
+        }
+    }
+
+    fn format_val(&self, val: &Value) -> String {
+        match val {
+            Value::Number(n) => format!("{}", n),
+            Value::String(s) => format!("{}", s),
+            Value::Nil => "nil".to_string(),
+            Value::Boolean(b) => format!("{}", b),
         }
     }
 

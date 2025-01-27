@@ -1,4 +1,4 @@
-use crate::expr::{self, BinaryOp, Literal, UnaryOp, UnaryOpType};
+use crate::expr::{self, BinaryOp, Literal, Stmt, UnaryOp, UnaryOpType};
 use crate::expr::{BinaryOpType, Expr};
 use crate::scanner::{self, *};
 
@@ -24,11 +24,35 @@ pub enum Error {
 }
 
 impl Parser {
-    pub fn parse(&mut self) -> Result<Expr, Error> {
+    pub fn parse(&mut self) -> Result<Vec<Stmt>, Error> {
         // self.tokens = tokens;
-        let expr = self.expression()?;
+        let mut statements = vec![];
+        while !self.is_at_end() {
+            statements.push(self.statement()?);
+        }
 
-        Ok(expr)
+        Ok(statements)
+    }
+
+    fn statement(&mut self) -> Result<Stmt, Error> {
+        if self.match_one(TokenType::Print) {
+            return self.print_stmt();
+        }
+        self.expression_stmt()
+    }
+
+    fn print_stmt(&mut self) -> Result<Stmt, Error> {
+        let expr = self.expression()?;
+        self.consume(TokenType::Semicolon, "Expected ; after value.")?;
+        let stmt = Stmt::Print(expr);
+        Ok(stmt)
+    }
+
+    fn expression_stmt(&mut self) -> Result<Stmt, Error> {
+        let expr = self.expression()?;
+        self.consume(TokenType::Semicolon, "Expected ; after value.")?;
+        let stmt = Stmt::Expr(expr);
+        Ok(stmt)
     }
 
     fn expression(&mut self) -> Result<Expr, Error> {
