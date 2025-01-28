@@ -1,4 +1,4 @@
-use crate::expr::{self, BinaryOp, Literal, Stmt, UnaryOp, UnaryOpType};
+use crate::expr::{self, BinaryOp, Literal, Stmt, Symbol, UnaryOp, UnaryOpType};
 use crate::expr::{BinaryOpType, Expr};
 use crate::scanner::{self, *};
 
@@ -28,10 +28,39 @@ impl Parser {
         // self.tokens = tokens;
         let mut statements = vec![];
         while !self.is_at_end() {
-            statements.push(self.statement()?);
+            statements.push(self.declaration()?);
         }
 
         Ok(statements)
+    }
+
+    fn declaration(&mut self) -> Result<Stmt, Error> {
+        if self.match_one(TokenType::Var) {
+            return self.var_declaration();
+        }
+        self.statement()
+    }
+
+    fn var_declaration(&mut self) -> Result<Stmt, Error> {
+        let name_token = self.consume(TokenType::Identifier, "Expect a variable name")?;
+
+        let mut initilizer = None;
+        if self.match_one(TokenType::Equal) {
+            initilizer = Some(self.expression()?);
+        }
+        self.consume(
+            TokenType::Semicolon,
+            "Expect ';' after variable declaration",
+        )?;
+        let stmt = Stmt::VarDecl(
+            Symbol {
+                name: String::from_utf8(name_token.lexeme).unwrap(), // Token Identifier stored in lexeme
+                line: name_token.line,
+                col: -1,
+            },
+            initilizer,
+        );
+        Ok(stmt)
     }
 
     fn statement(&mut self) -> Result<Stmt, Error> {
@@ -141,6 +170,28 @@ impl Parser {
                     return Ok(Expr::Literal(Literal::String(s)));
                 }
                 _ => panic!("Expected an literal"),
+            }
+        }
+
+        if self.match_one(TokenType::Identifier) {
+            let token = self.previous().clone();
+            match token.literal {
+                Some(scanner::Literal::Identifier(s)) => {
+                    return Ok(Expr::Variable(Symbol {
+                        name: s.clone(),
+                        line: token.line,
+                        col: -1,
+                    }));
+                }
+                Some(l) => {
+                    panic!(
+                        "Internal parser error: unexpected token {:?} while parsing identifier",
+                        l
+                    );
+                }
+                None => {
+                    panic!("Internal parser error: literal not found while parsing identifier.",)
+                }
             }
         }
 

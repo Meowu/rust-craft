@@ -61,7 +61,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     })?;
     // println!("Parsed Expr: {:?}", &program);
 
-    let mut interpreter = tree_interpreter::Interpreter {};
+    let mut interpreter = tree_interpreter::Interpreter::default();
     if let Err(e) = interpreter.interpret(&program) {
         eprintln!("Eval err: {}", e);
     }

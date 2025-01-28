@@ -1,6 +1,9 @@
+use crate::expr::{
+    self, BinaryOp, Expr, Literal, SourceLocation, Stmt, Symbol, UnaryOp, UnaryOpType,
+};
 use core::f64;
-
-use crate::expr::{self, BinaryOp, Expr, Literal, Stmt, UnaryOp, UnaryOpType};
+use std::collections::HashMap;
+use std::time::SystemTime;
 
 #[derive(Debug)]
 pub enum Value {
@@ -32,7 +35,77 @@ pub enum TypeError {}
 pub enum NameError {}
 pub enum ReferenceError {}
 
-pub struct Interpreter {}
+pub enum LookupResult<'a> {
+    Ok(&'a Value),
+    DeclaredNotDefined(SourceLocation),
+    NotDeclared,
+}
+
+struct Environment {
+    values: HashMap<String, (Option<Value>, SourceLocation)>,
+}
+
+impl Environment {
+    pub fn new() -> Self {
+        Environment {
+            values: HashMap::new(),
+        }
+    }
+
+    pub fn define(&mut self, symbol: Symbol, value: Option<Value>) {
+        self.values.insert(
+            symbol.name,
+            (
+                value,
+                SourceLocation {
+                    line: symbol.line,
+                    col: symbol.col,
+                },
+            ),
+        );
+    }
+
+    pub fn lookup(&self, symbol: &Symbol) -> LookupResult {
+        match self.values.get(&symbol.name) {
+            // why loc is unknown ?
+            Some((value, source_loc)) => match value {
+                Some(val) => LookupResult::Ok(val),
+                None => LookupResult::DeclaredNotDefined(SourceLocation {
+                    line: source_loc.line,
+                    col: source_loc.col,
+                }),
+            },
+            None => LookupResult::NotDeclared,
+        }
+    }
+
+    pub fn get(&self, symbol: &Symbol) -> Result<&Value, String> {
+        match self.lookup(symbol) {
+            LookupResult::Ok(val) => Ok(val),
+            LookupResult::DeclaredNotDefined(source_loc) => Err(format!(
+                "Use undefined variable '{}' in line {}, column {}.\
+                \nNote: {} was declared at line {}, column {} but not defined.",
+                symbol.name, symbol.line, symbol.col, symbol.name, source_loc.line, source_loc.col
+            )),
+            LookupResult::NotDeclared => Err(format!(
+                "Use undefined variable '{}' in line {}, column {}.",
+                symbol.name, symbol.line, symbol.col
+            )),
+        }
+    }
+}
+
+pub struct Interpreter {
+    pub env: Environment,
+}
+
+impl Default for Interpreter {
+    fn default() -> Self {
+        Interpreter {
+            env: Environment::new(),
+        }
+    }
+}
 
 impl Interpreter {
     pub fn interpret(&mut self, stmts: &[Stmt]) -> Result<(), String> {
@@ -55,6 +128,14 @@ impl Interpreter {
                 }
                 Err(err) => Err(err),
             },
+            Stmt::VarDecl(symbol, initilizer) => {
+                let val = match initilizer {
+                    Some(expr) => Some(self.evaluate_expr(expr)?),
+                    None => None,
+                };
+                self.env.define(symbol.clone(), val);
+                Ok(())
+            }
         }
     }
 

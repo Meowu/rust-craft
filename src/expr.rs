@@ -18,6 +18,7 @@ pub enum Expr {
 pub enum Stmt {
     Expr(Expr),
     Print(Expr),
+    VarDecl(Symbol, Option<Expr>),
 }
 
 #[derive(Debug, Clone)]
@@ -31,15 +32,15 @@ pub enum Literal {
 
 #[derive(Debug, Clone)]
 pub struct SourceLocation {
-    line: usize,
-    col: i64,
+    pub line: usize,
+    pub col: i64,
 }
 
 #[derive(Debug, Clone)]
 pub struct Symbol {
     pub name: String,
-    line: usize,
-    col: i64,
+    pub line: usize,
+    pub col: i64,
 }
 
 #[derive(Debug, Clone)]

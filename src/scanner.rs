@@ -55,7 +55,7 @@ pub enum TokenType {
 
 #[derive(Clone, Debug)]
 pub enum Literal {
-    Indentifier(String),
+    Identifier(String),
     Number(f64),
     String(String),
 }
