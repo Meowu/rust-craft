@@ -21,6 +21,10 @@ pub enum Error {
         line: usize,
         col: i64,
     },
+    InvalidAssignment {
+        line: usize,
+        col: i64,
+    },
 }
 
 impl Parser {
@@ -85,7 +89,24 @@ impl Parser {
     }
 
     fn expression(&mut self) -> Result<Expr, Error> {
-        return self.equality();
+        // return self.equality();
+        return self.assignment();
+    }
+
+    fn assignment(&mut self) -> Result<Expr, Error> {
+        let expr = self.equality()?;
+        if self.match_one(TokenType::Equal) {
+            let equals = self.previous().clone();
+            let assigned = self.assignment()?;
+            if let Expr::Variable(symbol) = &expr {
+                return Ok(Expr::Assign(symbol.clone(), Box::new(assigned)));
+            }
+            return Err(Error::InvalidAssignment {
+                line: equals.line,
+                col: -1,
+            });
+        }
+        Ok(expr)
     }
 
     fn equality(&mut self) -> Result<Expr, Error> {
